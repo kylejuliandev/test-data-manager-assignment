@@ -1,9 +1,9 @@
 name: Build Manager.Web app
 
 on:
-  pull_request:
+  push:
     branches:
-      - '*'
+      - main
 
 env:
   AZURE_WEBAPP_NAME: testdatamanager
@@ -22,10 +22,18 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }} 
       
-      - name: dotnet build and publish
+      - name: dotnet build
         run: |
           dotnet restore
           dotnet build --configuration Release
+
+    - name: update database
+      run: |
+        dotnet tool install --global dotnet-ef
+        dotnet ef database update -c ApplicationDbContext -p manager-web/src/Manager.Web/Manager.Web.csproj
+
+    - name: dotnet publish
+        run: |
           dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp' manager-web/src/Manager.Web/Manager.Web.csproj
           
       - name: 'Run Azure webapp deploy action using publish profile credentials'

@@ -1,9 +1,9 @@
 name: Build and Deploy Manager.Web app to Azure Web App
 
 on:
-  push:
+  pull_request:
     branches:
-      - main
+      - '*'
 
 env:
   DOTNET_VERSION: '6.0.x'
@@ -20,7 +20,7 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }} 
       
-      - name: dotnet build and publish
+      - name: dotnet build
         run: |
           dotnet restore
           dotnet build --configuration Release
