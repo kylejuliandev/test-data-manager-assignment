@@ -1,15 +1,17 @@
-name: Build and Deploy Manager.Web app to Azure Web App
+name: Build Manager.Web app
 
 on:
-  push:
+  pull_request:
     branches:
-      - main
+      - '*'
 
 env:
+  AZURE_WEBAPP_NAME: testdatamanager
+  AZURE_WEBAPP_PACKAGE_PATH: '.'
   DOTNET_VERSION: '6.0.x'
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     environment: dev
     steps:
@@ -24,3 +26,11 @@ jobs:
         run: |
           dotnet restore
           dotnet build --configuration Release
+          dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp' manager-web/src/Manager.Web/Manager.Web.csproj
+          
+      - name: 'Run Azure webapp deploy action using publish profile credentials'
+        uses: azure/webapps-deploy@v2
+        with: 
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE  }}
+          package: '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp'
