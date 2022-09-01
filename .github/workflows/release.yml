@@ -35,8 +35,8 @@ jobs:
           dotnet ef database update -c ApplicationDbContext -p manager-web/src/Manager.Web/Manager.Web.csproj
 
       - name: dotnet publish
-          run: |
-            dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp' manager-web/src/Manager.Web/Manager.Web.csproj
+        run: |
+          dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp' manager-web/src/Manager.Web/Manager.Web.csproj
             
       - name: 'Run Azure webapp deploy action using publish profile credentials'
         id: deploy-step
