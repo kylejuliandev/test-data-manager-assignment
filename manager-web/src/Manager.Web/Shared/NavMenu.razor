@@ -1,4 +1,23 @@
-﻿<header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between py-3 mb-4 border-bottom">
+﻿@inject IHttpContextAccessor Context
+
+<div class="d-flex pt-3 flex-row-reverse">
+	<AuthorizeView>
+		<Authorized>
+			@if (Context.HttpContext is not null)
+			{
+				if (Context.HttpContext.User is not null)
+				{
+					if (Context.HttpContext.User.Identity is not null)
+					{
+						<p>Hello, <strong>@Context.HttpContext.User.Identity.Name</strong>!</p>
+					}
+				}
+			}
+		</Authorized>
+	</AuthorizeView>
+</div>
+
+<header class="d-flex flex-wrap align-items-center justify-content-center justify-content-md-between pb-3 mb-4 border-bottom">
 	<a class="d-flex align-items-center col-md-3 mb-2 mb-md-0 text-dark text-decoration-none" href="/">
 
 	</a>
