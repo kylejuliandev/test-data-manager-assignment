@@ -13,7 +13,9 @@ env:
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
-    environment: dev
+    environment:
+      name: prod
+      url: {{ steps.deploy-step.outputs.webapp-url }}
     steps:
       - uses: actions/checkout@master
       
@@ -27,16 +29,17 @@ jobs:
           dotnet restore
           dotnet build --configuration Release
 
-    - name: update database
-      run: |
-        dotnet tool install --global dotnet-ef
-        dotnet ef database update -c ApplicationDbContext -p manager-web/src/Manager.Web/Manager.Web.csproj
-
-    - name: dotnet publish
+      - name: update database
         run: |
-          dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp' manager-web/src/Manager.Web/Manager.Web.csproj
-          
+          dotnet tool install --global dotnet-ef
+          dotnet ef database update -c ApplicationDbContext -p manager-web/src/Manager.Web/Manager.Web.csproj
+
+      - name: dotnet publish
+          run: |
+            dotnet publish -c Release -o '${{ env.AZURE_WEBAPP_PACKAGE_PATH }}/myapp' manager-web/src/Manager.Web/Manager.Web.csproj
+            
       - name: 'Run Azure webapp deploy action using publish profile credentials'
+        id: deploy-step
         uses: azure/webapps-deploy@v2
         with: 
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
