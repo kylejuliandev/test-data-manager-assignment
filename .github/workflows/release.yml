@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: prod
-      url: {{ steps.deploy-step.outputs.webapp-url }}
+      url: ${{ steps.deploy-step.outputs.webapp-url }}
     steps:
       - uses: actions/checkout@master
       
