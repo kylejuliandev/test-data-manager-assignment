@@ -6,7 +6,6 @@ on:
       - '*'
 
 env:
-  DOTNET_VERSION: '6.0.x'
   AZURE_WEBAPP_NAME: testdatamanager-stage
   AZURE_WEBAPP_PACKAGE_PATH: '.'
   DOTNET_VERSION: '6.0.x'
