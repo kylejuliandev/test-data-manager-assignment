@@ -55,6 +55,6 @@ app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 
-await app.CreateDefaultAuthorizationRoles();
+await app.SeedUsersAsync();
 
 await app.RunAsync();
