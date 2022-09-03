@@ -16,23 +16,23 @@ public static class ApplicationDbInitializer
         using var scope = app.Services.CreateScope();
         var userManager = scope.ServiceProvider.GetRequiredService<UserManager<IdentityUser>>();
 
-        if (await userManager.FindByNameAsync("superadmin") is null)
+        if (await userManager.FindByNameAsync("superuser") is null)
         {
-            var superAdmin = new IdentityUser
+            var superUser = new IdentityUser
             {
                 Id = ADMIN_ID,
-                UserName = "superadmin",
-                NormalizedUserName = "SUPERADMIN",
-                Email = "superadmin@testdatamanager.dev",
-                NormalizedEmail = "superadmin@testdatamanager.dev",
+                UserName = "superuser",
+                NormalizedUserName = "SUPERUSER",
+                Email = "superuser@testdatamanager.dev",
+                NormalizedEmail = "superuser@testdatamanager.dev",
                 EmailConfirmed = true,
                 SecurityStamp = string.Empty
             };
 
-            var result = await userManager.CreateAsync(superAdmin, app.Configuration["Users:superadmin:Password"]);
+            var result = await userManager.CreateAsync(superUser, app.Configuration["Users:superuser:Password"]);
             if (result.Succeeded)
             {
-                await userManager.AddToRoleAsync(superAdmin, "superadmin");
+                await userManager.AddToRoleAsync(superUser, "superuser");
             }
         }
     }

@@ -3,8 +3,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Manager.Web.Areas.Identity;
 using Manager.Web.Data;
-using System.Runtime.CompilerServices;
-using Manager.Web;
 
 var builder = WebApplication.CreateBuilder(args);
 
