@@ -11,7 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Manager.Web.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20220903155508_AddDefaultRoles")]
+    [Migration("20220903174158_AddDefaultRoles")]
     partial class AddDefaultRoles
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -48,23 +48,23 @@ namespace Manager.Web.Data.Migrations
                         new
                         {
                             Id = "9ffe1c8e-6dd6-4d1f-8e5a-93911e41cc90",
-                            ConcurrencyStamp = "c408595a-4422-43bc-aeed-53c31b9aba59",
+                            ConcurrencyStamp = "a123097a-63c2-4c22-be57-d08a7793c0b8",
                             Name = "user",
                             NormalizedName = "USER"
                         },
                         new
                         {
                             Id = "bd2b7bc6-fa36-4988-9563-7ff609cf794c",
-                            ConcurrencyStamp = "f8c8ab7d-6604-4eb0-9c87-5b44baaf17b0",
+                            ConcurrencyStamp = "9e3856b0-725b-4dd5-85bf-78f5fbf9278c",
                             Name = "admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
                             Id = "02171634-f2c9-4054-966f-675702641552",
-                            ConcurrencyStamp = "9458c513-5553-46bd-8f63-d23b687d3b59",
-                            Name = "superadmin",
-                            NormalizedName = "SUPERADMIN"
+                            ConcurrencyStamp = "d4f5cdf6-9477-4b30-b011-1a2ef02c29f5",
+                            Name = "superuser",
+                            NormalizedName = "SUPERUSER"
                         });
                 });
 
