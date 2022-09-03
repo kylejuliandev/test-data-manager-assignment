@@ -13,24 +13,28 @@
             <form id="account" method="post">
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
                 <div class="mb-3">
-                    <label asp-for="Input.Email" for="inputEmail" class="form-label"></label>
-                    <input asp-for="Input.Email" id="inputEmail" class="form-control" type="email" autocomplete="username" aria-required="true" />
+                    <label asp-for="Input.Username" for="inputUsername" class="form-label"></label>
+                    <input asp-for="Input.Username" id="inputUsername" class="form-control" autocomplete="username" aria-required="true" />
                     
-                    <span asp-validation-for="Input.Email" class="text-danger"></span>
+                    <span asp-validation-for="Input.Username" class="text-danger"></span>
                 </div>
+
                 <div class="mb-3">
                     <label asp-for="Input.Password" class="form-label"></label>
                     <input asp-for="Input.Password" class="form-control" autocomplete="current-password" aria-required="true" />
                     
                     <span asp-validation-for="Input.Password" class="text-danger"></span>
                 </div>
+
                 <div class="mb-3 form-check">
                     <input id="rememberMeCheckbox" type="checkbox" class="form-check-input" asp-for="Input.RememberMe" />
                     <label for="rememberMeCheckbox" asp-for="Input.RememberMe" class="form-check-label"></label>
                 </div>
+
                 <div class="text-center">
                     <button id="login-submit" type="submit" class="w-75 btn btn-primary">Log in</button>
                 </div>
+
                 <div class="my-5">
                     <p>
                         <a id="forgot-password" asp-page="./ForgotPassword">Forgot your password?</a>

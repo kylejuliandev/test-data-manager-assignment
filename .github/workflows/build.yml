@@ -1,9 +1,9 @@
 name: Build Manager.Web app
 
 on:
-  pull_request:
+  push:
     branches:
-      - '*'
+      - 'develop'
 
 env:
   AZURE_WEBAPP_NAME: testdatamanager-stage
