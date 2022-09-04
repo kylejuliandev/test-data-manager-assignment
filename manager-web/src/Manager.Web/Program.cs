@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Manager.Web.Areas.Identity;
 using Manager.Web.Data;
+using Manager.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,8 +24,19 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("ListSchemes", policy => policy.RequireRole("user","admin","superuser"));
+    options.AddPolicy("CreateScheme", policy => policy.RequireRole("admin", "superuser"));
+    options.AddPolicy("EditScheme", policy => policy.RequireRole("admin", "superuser"));
+});
+
+builder.Services.AddHttpContextAccessor();
+
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
+builder.Services.AddScoped<SchemeService>();
 
 builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuthenticationStateProvider<IdentityUser>>();
 

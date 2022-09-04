@@ -1,0 +1,73 @@
+﻿@page "/schemes"
+@inject SchemeService SchemeService
+
+<SchemeHeader PageTitle="Schemes"
+	PageText="You can view all test schemes that have been set up here. A test scheme is a a collection of key value pairs that form test configuration for an automated test suite.">
+</SchemeHeader>
+
+<div class="row">
+	<div class="col">
+		@if (_schemes is not null)
+		{
+			<table class="table">
+				<thead>
+					<tr>
+						<th scope="col">Title</th>
+						<th scope="col">Created by</th>
+						<th scope="col">Created on</th>
+						<th scope="col"></th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var scheme in _schemes)
+					{
+						<tr>
+							<th scope="row">@scheme.Title</th>
+							<td>@scheme.CreatedByUsername</td>
+							<td>@scheme.CreatedOn.ToLocalTime()</td>
+							<td> 
+								@{
+									var readSchemeLink = $"schemes/{scheme.Id}";
+									var editSchemeLink = $"schemes/{scheme.Id}/edit";
+								}
+
+								<NavLink href="@readSchemeLink" class="btn btn-primary">View</NavLink>
+
+								<AuthorizeView Policy="EditScheme">
+									<Authorized>
+										<NavLink href="@editSchemeLink" class="btn btn-warning">Edit</NavLink>
+									</Authorized>
+								</AuthorizeView>
+							</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		}
+	</div>
+</div>
+
+<br />
+
+<div class="d-grid col-6 mx-auto">
+	<AuthorizeView Policy="CreateScheme">
+		<Authorized>
+			<NavLink href="schemes/create" class="btn btn-large btn-success">Create</NavLink>
+		</Authorized>
+	</AuthorizeView>
+</div>
+
+@code {
+	private const int _pageSize = 10;
+	private int _page = 1;
+	private bool _hasMore = false;
+
+	private ListSchemeDto[]? _schemes;
+
+	protected override async Task OnInitializedAsync()
+	{
+		var schemes = await SchemeService.GetSchemesAsync(_page - 1, _pageSize);
+		_schemes = schemes.Items;
+		_hasMore = schemes.HasMore;
+	}
+}

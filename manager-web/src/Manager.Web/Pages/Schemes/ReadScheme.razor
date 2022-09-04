@@ -1,0 +1,104 @@
+﻿@page "/schemes/{SchemeId:guid}"
+@inject SchemeService Service
+
+<SchemeHeader PageTitle="View Scheme"
+	PageText="Here you can view a test scheme and its associated test items. Additionally, you can add view and add test items to a scheme.">
+
+	<PageLinks>
+		<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+			<NavLink href="/schemes" class="btn btn-secondary">Return to schemes</NavLink>
+
+			<AuthorizeView Policy="EditScheme">
+				<Authorized>
+					<NavLink href="@EditLinkTo" class="btn btn-warning">Edit scheme</NavLink>
+				</Authorized>
+			</AuthorizeView>
+		</div>
+	</PageLinks>
+</SchemeHeader>
+
+@if (_scheme is not null)
+{
+	<div class="row mt-3">
+		<div class="col-md-6">
+			<p class="h5 text-center mb-3">Summary</p>
+
+			<div class="row">
+				<div class="col-2"><p><b>Id</b></p></div>
+				<div class="col-10"><p>@_scheme.Id</p></div>
+			</div>
+			<div class="row">
+				<div class="col-2"><p><b>Title</b></p></div>
+				<div class="col-10"><p>@_scheme.Title</p></div>
+			</div>
+
+			<p class="h5 text-center my-3">Audit</p>
+			<div class="row">
+				<div class="col-4"><p><b>Created by</b></p></div>
+				<div class="col-8"><p>@_scheme.CreatedByUsername</p></div>
+			</div>
+			<div class="row">
+				<div class="col-4"><p><b>Created on</b></p></div>
+				<div class="col-8"><p>@_scheme.CreatedOn</p></div>
+			</div>
+			<div class="row">
+				<div class="col-4"><p><b>Modified by</b></p></div>
+				<div class="col-8"><p>@_scheme.ModifiedByUsername</p></div>
+			</div>
+			<div class="row">
+				<div class="col-4"><p><b>Modified on</b></p></div>
+				<div class="col-8"><p>@_scheme.ModifiedOn</p></div>
+			</div>
+		</div>
+
+		<div class="col-md-6">
+			<p class="h5 text-center mb-3">Test Items</p>
+
+			<table class="table">
+				<thead>
+					<tr>
+						<th>Key</th>
+						<th>Value</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var schemeData in _scheme.SchemeData)
+					{
+						<tr>
+							<td>@schemeData.Key</td>
+							<td>@schemeData.Value</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</div>
+	</div>
+
+	<div class="d-grid mx-auto justify-content-md-end">
+		@{
+			var createTestItemLink = $"/schemes/{_scheme.Id}/data/create";
+		}
+
+		<NavLink href="@createTestItemLink" class="btn btn-success">Create test item</NavLink>
+	</div>
+}
+
+@code {
+	[Parameter]
+	public Guid SchemeId { get; set; }
+
+	private SchemeDto? _scheme;
+
+	private string EditLinkTo = default!;
+
+	protected override void OnInitialized()
+	{
+		EditLinkTo = $"/schemes/{SchemeId}/edit";
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		var scheme = await Service.GetSchemeAsync(SchemeId);
+		_scheme = scheme.Item;
+	}
+}

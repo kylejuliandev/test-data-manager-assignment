@@ -1,27 +1,77 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Manager.Web.Data.Configuration;
+using Manager.Web.Data.Models;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace Manager.Web.Data;
 
 public class ApplicationDbContext : IdentityDbContext
 {
-    // Do not change
-    const string USER_ROLE_ID = "9ffe1c8e-6dd6-4d1f-8e5a-93911e41cc90";
-    const string ADMIN_ROLE_ID = "bd2b7bc6-fa36-4988-9563-7ff609cf794c";
-    const string SUPERUSER_ROLE_ID = "02171634-f2c9-4054-966f-675702641552";
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
+    public DbSet<Scheme> Schemes { get; set; }
+    
+    public DbSet<SchemeData> SchemeData { get; set; }
+
+    public ApplicationDbContext(
+        DbContextOptions<ApplicationDbContext> options,
+        IHttpContextAccessor httpContextAccessor) : base(options)
     {
+        _httpContextAccessor = httpContextAccessor;
     }
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        builder.Entity<IdentityRole>().HasData(new IdentityRole { Id = USER_ROLE_ID, Name = "user", NormalizedName = "USER" });
-        builder.Entity<IdentityRole>().HasData(new IdentityRole { Id = ADMIN_ROLE_ID, Name = "admin", NormalizedName = "ADMIN" });
-        builder.Entity<IdentityRole>().HasData(new IdentityRole { Id = SUPERUSER_ROLE_ID, Name = "superuser", NormalizedName = "SUPERUSER" });
+        builder.ApplyConfiguration(new IdentityRoleConfiguration());
+        builder.ApplyConfiguration(new SchemeConfiguration());
+        builder.ApplyConfiguration(new SchemeDataConfiguration());
+    }
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        var entries = ChangeTracker
+            .Entries()
+            .Where(e => e.Entity is AuditableEntity && (e.State is EntityState.Added || e.State is EntityState.Modified));
+
+        if (entries.Any())
+        {
+            var context = _httpContextAccessor.HttpContext;
+
+            if (context is null || context.User is null)
+                throw new NotAuthorizedException();
+
+            var userIdClaim = context.User.FindFirst(r => r.Type is ClaimTypes.NameIdentifier);
+            if (userIdClaim is null)
+                throw new NotAuthorizedException();
+
+            var user = await Users.FindAsync(new[] { userIdClaim.Value }, cancellationToken);
+
+            if (user is null)
+                throw new NotAuthorizedException();
+
+            foreach (var change in entries)
+            {
+                var auditEntry = (AuditableEntity)change.Entity;
+
+                if (change.State is EntityState.Added)
+                {
+                    auditEntry.CreatedAt = DateTime.UtcNow;
+                    auditEntry.CreatedById = user.Id;
+                }
+                else
+                {
+                    Entry(auditEntry).Property(p => p.CreatedById).IsModified = false;
+                    Entry(auditEntry).Property(p => p.CreatedAt).IsModified = false;
+                }
+
+                auditEntry.ModifiedAt = DateTime.UtcNow;
+                auditEntry.ModifiedById = user.Id;
+            }
+        }
+
+        return await base.SaveChangesAsync(cancellationToken);
     }
 }

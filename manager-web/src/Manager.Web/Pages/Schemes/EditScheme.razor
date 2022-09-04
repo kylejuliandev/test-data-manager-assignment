@@ -1,0 +1,26 @@
+﻿@page "/schemes/{SchemeId:guid}/edit"
+@attribute [Authorize(Policy = "EditScheme")]
+
+<SchemeHeader PageTitle="Edit Scheme"
+	PageText="You can edit the test scheme here.">
+
+	<PageLinks>
+		<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+			<NavLink href="@ReadLinkTo" class="btn btn-secondary">Return to scheme</NavLink>
+		</div>
+	</PageLinks>
+</SchemeHeader>
+
+<p>@SchemeId</p>
+
+@code {
+	[Parameter]
+	public Guid SchemeId { get; set; }
+
+	private string ReadLinkTo = default!;
+
+	protected override void OnInitialized()
+	{
+		ReadLinkTo = $"/schemes/{SchemeId}";
+	}
+}

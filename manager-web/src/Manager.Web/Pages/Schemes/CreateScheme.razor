@@ -1,0 +1,59 @@
+﻿@page "/schemes/create"
+@inject ApplicationDbContext database
+@inject NavigationManager NavManager
+@attribute [Authorize(Policy = "CreateScheme")]
+
+<SchemeHeader PageTitle="Create Scheme"
+	PageText="Here you can create a new test scheme. A test scheme is a a collection of key value pairs that form test configuration for an automated test suite.">
+
+	<PageLinks>
+		<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+			<NavLink href="/schemes" class="btn btn-secondary">Return to schemes</NavLink>
+		</div>
+	</PageLinks>
+</SchemeHeader>
+
+<div class="row justify-content-center">
+	<div class="col-md-8">
+		<EditForm Model="@Model" OnSubmit="@HandleValidSubmit">
+			<div class="mb-3">
+				<label for="titleInput" class="form-label">Title</label>
+				<InputText class="form-control" id="titleInput" @bind-Value="Model.Title" />
+			</div>
+
+			<div class="mb-3 justify-content-end">
+				<button type="submit" class="btn btn-primary">Create</button>
+			</div>
+		</EditForm>
+	</div>
+</div>
+
+@code {
+	public CreateSchemeForm Model { get; set; } = new();
+
+	public EditContext? editContext;
+
+	protected override void OnInitialized()
+	{
+		editContext = new(Model);
+	}
+
+	private async Task HandleValidSubmit()
+	{
+		if (editContext is not null && editContext.Validate())
+		{
+			var schemeId = Guid.NewGuid();
+
+			var scheme = new Scheme
+			{
+				Id = schemeId,
+				Title = Model.Title
+			};
+
+			await database.AddAsync<Scheme>(scheme);
+			await database.SaveChangesAsync();
+
+			NavManager.NavigateTo($"/schemes/{schemeId}");
+		}
+	}
+}
