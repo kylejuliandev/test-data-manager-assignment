@@ -1,4 +1,5 @@
 ﻿@page "/schemes"
+@inject IJSRuntime JsRuntime
 @inject SchemeService SchemeService
 
 <SchemeHeader PageTitle="Schemes"
@@ -38,6 +39,14 @@
 										<NavLink href="@editSchemeLink" class="btn btn-warning">Edit</NavLink>
 									</Authorized>
 								</AuthorizeView>
+
+								<AuthorizeView Policy="RemoveScheme">
+									<Authorized>
+										<form @onsubmit="async () => await DeleteSchemeAsync(scheme.Id)">
+											<button type="submit" class="btn btn-danger">Remove</button>
+										</form>
+									</Authorized>
+								</AuthorizeView>
 							</td>
 						</tr>
 					}
@@ -69,5 +78,14 @@
 		var schemes = await SchemeService.GetSchemesAsync(_page - 1, _pageSize);
 		_schemes = schemes.Items;
 		_hasMore = schemes.HasMore;
+	}
+
+	private async Task DeleteSchemeAsync(Guid schemeId)
+	{
+		var confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this scheme?");
+		if (confirmed)
+		{
+			await SchemeService.RemoveSchemeAsync(schemeId);
+		}
 	}
 }

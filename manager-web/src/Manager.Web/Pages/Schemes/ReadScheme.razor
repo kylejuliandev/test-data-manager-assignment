@@ -1,5 +1,7 @@
 ﻿@page "/schemes/{SchemeId:guid}"
+@inject IJSRuntime JsRuntime
 @inject SchemeService Service
+@inject NavigationManager NavManager
 
 <SchemeHeader PageTitle="View Scheme"
 	PageText="Here you can view a test scheme and its associated test items. Additionally, you can add view and add test items to a scheme.">
@@ -13,6 +15,18 @@
 					<NavLink href="@EditLinkTo" class="btn btn-warning">Edit scheme</NavLink>
 				</Authorized>
 			</AuthorizeView>
+
+
+			@if (_scheme is not null)
+			{
+				<AuthorizeView Policy="RemoveScheme">
+					<Authorized>
+						<form @onsubmit="async () => await DeleteSchemeAsync(_scheme.Id)">
+							<button type="submit" class="btn btn-danger">Remove</button>
+						</form>
+					</Authorized>
+				</AuthorizeView>
+			}
 		</div>
 	</PageLinks>
 </SchemeHeader>
@@ -100,5 +114,16 @@
 	{
 		var scheme = await Service.GetSchemeAsync(SchemeId);
 		_scheme = scheme.Item;
+	}
+
+	private async Task DeleteSchemeAsync(Guid schemeId)
+	{
+		var confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this scheme?");
+		if (confirmed)
+		{
+			await Service.RemoveSchemeAsync(schemeId);
+
+			NavManager.NavigateTo("/schemes");
+		}
 	}
 }

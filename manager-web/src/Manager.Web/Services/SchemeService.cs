@@ -1,20 +1,21 @@
 ﻿using Manager.Web.Data;
+using Manager.Web.Data.Models;
 using Manager.Web.Domain;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 
 namespace Manager.Web.Services;
 
 public sealed class SchemeService
 {
+    private readonly ILogger<SchemeService> _logger;
     private readonly ApplicationDbContext _database;
 
-    public SchemeService(ApplicationDbContext database)
+    public SchemeService(ILogger<SchemeService> logger, ApplicationDbContext database)
     {
+        _logger = logger;
         _database = database;
     }
 
-    [Authorize(Policy = "ListSchemes")]
     public async Task<ManagedPaginatedResponse<ListSchemeDto>> GetSchemesAsync(int page, int pageSize)
     {
         if (page < 0 || pageSize < 0)
@@ -28,9 +29,9 @@ public sealed class SchemeService
         var schemes = await _database.Schemes
             .Include(s => s.CreatedBy)
             .Include(s => s.ModifiedBy)
+            .OrderByDescending(s => s.CreatedAt)
             .Skip(page * pageSize)
             .Take(pageSize + 1)
-            .OrderByDescending(s => s.CreatedAt)
             .ToArrayAsync();
 
         var schemeDtos = schemes
@@ -51,16 +52,10 @@ public sealed class SchemeService
 
     public async Task<ManagedResponse<SchemeDto>> GetSchemeAsync(Guid schemeId)
     {
-        var scheme = await _database.Schemes
-            .Include(s => s.CreatedBy)
-            .Include(s => s.ModifiedBy)
-            .Include(s => s.Data)
-            .FirstOrDefaultAsync(s => s.Id == schemeId);
+        var scheme = await GetScheme(schemeId);
 
         if (scheme is null)
-        {
             return new ManagedResponse<SchemeDto>(null, new[] { new ManagedError("Scheme not found") });
-        }
 
         return new ManagedResponse<SchemeDto>(new SchemeDto
         {
@@ -80,4 +75,69 @@ public sealed class SchemeService
             ModifiedOn = scheme.ModifiedAt
         }, null);
     }
+
+    public async Task<ManagedResponse<SchemeDto>> CreateSchemeAsync(string title)
+    {
+        try
+        {
+            var schemeId = Guid.NewGuid();
+            var scheme = new Scheme
+            {
+                Id = schemeId,
+                Title = title
+            };
+
+            await _database.AddAsync(scheme);
+            await _database.SaveChangesAsync();
+
+            scheme = await GetScheme(schemeId);
+
+            return new ManagedResponse<SchemeDto>(new SchemeDto
+            {
+                Id = scheme!.Id,
+                Title = scheme.Title,
+                SchemeData = scheme.Data
+                    .Select(d => new SchemeDataDto
+                    {
+                        Id = d.Id,
+                        Key = d.Key,
+                        Value = d.Value
+                    })
+                    .ToArray(),
+                CreatedByUsername = scheme.CreatedBy.UserName,
+                CreatedOn = scheme.CreatedAt,
+                ModifiedByUsername = scheme.ModifiedBy.UserName,
+                ModifiedOn = scheme.ModifiedAt
+            }, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unable to create Scheme in database");
+
+            return new ManagedResponse<SchemeDto>(null, new[] { new ManagedError("Unable to save Scheme to the server") });
+        }
+    }
+
+    public async Task<ManagedResponse<bool>> RemoveSchemeAsync(Guid schemeId)
+    {
+        var scheme = await GetScheme(schemeId);
+
+        if (scheme is null)
+        {
+            _logger.LogWarning("Scheme not found, cannot remove the scheme");
+
+            return new ManagedResponse<bool>(false, new[] { new ManagedError("") });
+        }
+
+        _database.Schemes.Remove(scheme);
+        await _database.SaveChangesAsync();
+
+        return new ManagedResponse<bool>(true);
+    }
+
+    private async Task<Scheme?> GetScheme(Guid schemeId) => await _database.Schemes
+        .Include(s => s.CreatedBy)
+        .Include(s => s.ModifiedBy)
+        .Include(s => s.Data)
+        .FirstOrDefaultAsync(s => s.Id == schemeId);
 }
