@@ -5,7 +5,7 @@
 
 @if (Model is not null && editContext is not null)
 {
-	<SchemeHeader PageTitle="Edit Scheme"
+	<PageHeader PageTitle="Edit Scheme"
 		PageText="You can edit the test scheme here.">
 
 		<PageLinks>
@@ -13,7 +13,7 @@
 				<NavLink href="@ReadLinkTo" class="btn btn-secondary">Return to scheme</NavLink>
 			</div>
 		</PageLinks>
-	</SchemeHeader>
+	</PageHeader>
 
 	<EditForm EditContext="editContext" OnSubmit="@HandleValidSubmit" class="row g-3 needs-validation">
 		<DataAnnotationsValidator />
@@ -38,10 +38,10 @@
 }
 else
 {
-	<SchemeHeader PageTitle="Not Found"
+	<PageHeader PageTitle="Not Found"
 				PageText="Sorry, there's nothing at this address.">
 		<PageLinks></PageLinks>
-	</SchemeHeader>
+	</PageHeader>
 }
 
 

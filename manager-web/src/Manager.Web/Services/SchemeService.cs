@@ -57,23 +57,7 @@ public sealed class SchemeService
         if (scheme is null)
             return new ManagedResponse<SchemeDto>(null, new[] { new ManagedError("Scheme not found") });
 
-        return new ManagedResponse<SchemeDto>(new SchemeDto
-        {
-            Id = scheme.Id,
-            Title = scheme.Title,
-            SchemeData = scheme.Data
-                .Select(d => new SchemeDataDto
-                {
-                    Id = d.Id,
-                    Key = d.Key,
-                    Value = d.Value
-                })
-                .ToArray(),
-            CreatedByUsername = scheme.CreatedBy.UserName,
-            CreatedOn = scheme.CreatedAt,
-            ModifiedByUsername = scheme.ModifiedBy.UserName,
-            ModifiedOn = scheme.ModifiedAt
-        }, null);
+        return new ManagedResponse<SchemeDto>(MapSchemeToSchemeDto(scheme), null);
     }
 
     public async Task<ManagedResponse<SchemeDto>> CreateSchemeAsync(string title)
@@ -92,23 +76,7 @@ public sealed class SchemeService
 
             scheme = await GetScheme(schemeId);
 
-            return new ManagedResponse<SchemeDto>(new SchemeDto
-            {
-                Id = scheme!.Id,
-                Title = scheme.Title,
-                SchemeData = scheme.Data
-                    .Select(d => new SchemeDataDto
-                    {
-                        Id = d.Id,
-                        Key = d.Key,
-                        Value = d.Value
-                    })
-                    .ToArray(),
-                CreatedByUsername = scheme.CreatedBy.UserName,
-                CreatedOn = scheme.CreatedAt,
-                ModifiedByUsername = scheme.ModifiedBy.UserName,
-                ModifiedOn = scheme.ModifiedAt
-            }, null);
+            return new ManagedResponse<SchemeDto>(MapSchemeToSchemeDto(scheme!), null);
         }
         catch (Exception ex)
         {
@@ -131,46 +99,66 @@ public sealed class SchemeService
 
         if (scheme.Title == title)
         {
-            return new ManagedResponse<SchemeDto>(new SchemeDto
-            {
-                Id = scheme!.Id,
-                Title = scheme.Title,
-                SchemeData = scheme.Data
-                    .Select(d => new SchemeDataDto
-                    {
-                        Id = d.Id,
-                        Key = d.Key,
-                        Value = d.Value
-                    })
-                    .ToArray(),
-                CreatedByUsername = scheme.CreatedBy.UserName,
-                CreatedOn = scheme.CreatedAt,
-                ModifiedByUsername = scheme.ModifiedBy.UserName,
-                ModifiedOn = scheme.ModifiedAt
-            }, null);
+            return new ManagedResponse<SchemeDto>(MapSchemeToSchemeDto(scheme), null);
         }
 
         scheme.Title = title;
 
         await _database.SaveChangesAsync();
 
-        return new ManagedResponse<SchemeDto>(new SchemeDto
+        return new ManagedResponse<SchemeDto>(MapSchemeToSchemeDto(scheme), null);
+    }
+
+    public async Task<ManagedResponse<SchemeDto>> CreateSchemeDataAsync(Guid schemeId, string key, string value)
+    {
+        var scheme = await GetScheme(schemeId);
+
+        if (scheme is null)
         {
-            Id = scheme!.Id,
-            Title = scheme.Title,
-            SchemeData = scheme.Data
-                    .Select(d => new SchemeDataDto
-                    {
-                        Id = d.Id,
-                        Key = d.Key,
-                        Value = d.Value
-                    })
-                    .ToArray(),
-            CreatedByUsername = scheme.CreatedBy.UserName,
-            CreatedOn = scheme.CreatedAt,
-            ModifiedByUsername = scheme.ModifiedBy.UserName,
-            ModifiedOn = scheme.ModifiedAt
-        }, null);
+            _logger.LogWarning("Scheme not found, cannot add scheme data");
+
+            return new ManagedResponse<SchemeDto>(null, new[] { new ManagedError("You cannot add scheme data to this scheme") });
+        }
+
+        var dataKeyExists = await _database.SchemeData.FirstOrDefaultAsync(sd => EF.Functions.Collate(sd.Key, "NOCASE") == key);
+        if (dataKeyExists is not null)
+        {
+            _logger.LogWarning("Cannot add duplicate test data key");
+
+            return new ManagedResponse<SchemeDto>(null, new[] { new ManagedError("The key field must be unique") });
+        }
+
+        var schemeDataId = Guid.NewGuid();
+        var schemeData = new SchemeData
+        {
+            Id = schemeDataId,
+            Key = key,
+            Value = value,
+            Scheme = scheme
+        };
+
+        await _database.SchemeData.AddAsync(schemeData);
+
+        await _database.SaveChangesAsync();
+
+        return new ManagedResponse<SchemeDto>(MapSchemeToSchemeDto(scheme), null);
+    }
+
+    public async Task<ManagedResponse<bool>> RemoveSchemeDataAsync(Guid schemeId, Guid schemeDataId)
+    {
+        var schemeData = await _database.SchemeData.FirstOrDefaultAsync(sd => sd.SchemeId == schemeId && sd.Id == schemeDataId);
+
+        if (schemeData is null)
+        {
+            _logger.LogWarning("Scheme Data not found, cannot remove the scheme data");
+
+            return new ManagedResponse<bool>(false, new[] { new ManagedError("You cannot remove this scheme data") });
+        }
+
+        _database.Remove(schemeData);
+        await _database.SaveChangesAsync();
+
+        return new ManagedResponse<bool>(true);
     }
 
     public async Task<ManagedResponse<bool>> RemoveSchemeAsync(Guid schemeId)
@@ -195,4 +183,22 @@ public sealed class SchemeService
         .Include(s => s.ModifiedBy)
         .Include(s => s.Data)
         .FirstOrDefaultAsync(s => s.Id == schemeId);
+
+    private static SchemeDto MapSchemeToSchemeDto(Scheme scheme) => new()
+    {
+        Id = scheme!.Id,
+        Title = scheme.Title,
+        SchemeData = scheme.Data
+            .Select(d => new SchemeDataDto
+            {
+                Id = d.Id,
+                Key = d.Key,
+                Value = d.Value
+            })
+            .ToArray(),
+        CreatedByUsername = scheme.CreatedBy.UserName,
+        CreatedOn = scheme.CreatedAt,
+        ModifiedByUsername = scheme.ModifiedBy.UserName,
+        ModifiedOn = scheme.ModifiedAt
+    };
 }

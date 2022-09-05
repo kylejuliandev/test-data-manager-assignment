@@ -30,6 +30,8 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("CreateScheme", policy => policy.RequireRole("admin", "superuser"));
     options.AddPolicy("EditScheme", policy => policy.RequireRole("admin", "superuser"));
     options.AddPolicy("RemoveScheme", policy => policy.RequireRole("admin", "superuser"));
+    options.AddPolicy("CreateSchemeData", policy => policy.RequireRole("admin", "superuser"));
+    options.AddPolicy("RemoveSchemeData", policy => policy.RequireRole("admin", "superuser"));
 });
 
 builder.Services.AddHttpContextAccessor();

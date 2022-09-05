@@ -5,7 +5,7 @@
 
 @if (_scheme is not null)
 {
-	<SchemeHeader PageTitle="View Scheme"
+	<PageHeader PageTitle="View Scheme"
 		PageText="Here you can view a test scheme and its associated test items. Additionally, you can add view and add test items to a scheme.">
 
 		<PageLinks>
@@ -31,7 +31,7 @@
 				}
 			</div>
 		</PageLinks>
-	</SchemeHeader>
+	</PageHeader>
 
 	<div class="row mt-3">
 		<div class="col-md-6">
@@ -68,23 +68,44 @@
 		<div class="col-md-6">
 			<p class="h5 text-center mb-3">Test Items</p>
 
-			<table class="table">
-				<thead>
-					<tr>
-						<th>Key</th>
-						<th>Value</th>
-					</tr>
-				</thead>
-				<tbody>
-					@foreach (var schemeData in _scheme.SchemeData)
-					{
+			@if (_scheme.SchemeData.Any())
+			{
+				<table class="table">
+					<thead>
 						<tr>
-							<td>@schemeData.Key</td>
-							<td>@schemeData.Value</td>
+							<th>Key</th>
+							<th>Value</th>
+							<AuthorizeView Policy="RemoveSchemeData">
+								<Authorized>
+									<th></th>
+								</Authorized>
+							</AuthorizeView>
 						</tr>
-					}
-				</tbody>
-			</table>
+					</thead>
+					<tbody>
+						@foreach (var schemeData in _scheme.SchemeData)
+						{
+							<tr>
+								<td>@schemeData.Key</td>
+								<td>@schemeData.Value.Truncate(15)</td>
+								<AuthorizeView Policy="RemoveSchemeData">
+									<Authorized>
+										<th class="d-flex justify-content-end">
+											<form @onsubmit="async () => await DeleteSchemeItemAsync(_scheme.Id, schemeData.Id)">
+												<button type="submit" class="btn btn-danger btn-sm me-auto">Remove</button>
+											</form>
+										</th>
+									</Authorized>
+								</AuthorizeView>
+							</tr>
+						}
+					</tbody>
+				</table>
+			}
+			else
+			{
+				<p class="p-2 text-center fst-italic">You have not created any Test Items just yet!</p>	
+			}
 		</div>
 	</div>
 
@@ -93,15 +114,19 @@
 			var createTestItemLink = $"/schemes/{_scheme.Id}/data/create";
 		}
 
-		<NavLink href="@createTestItemLink" class="btn btn-success">Create test item</NavLink>
+		<AuthorizeView Policy="CreateSchemeData">
+			<Authorized>
+				<NavLink href="@createTestItemLink" class="btn btn-success">Create test item</NavLink>
+			</Authorized>
+		</AuthorizeView>
 	</div>
 }
 else
 {
-	<SchemeHeader PageTitle="Not Found"
+	<PageHeader PageTitle="Not Found"
 			  PageText="Sorry, there's nothing at this address.">
 		<PageLinks></PageLinks>
-	</SchemeHeader>
+	</PageHeader>
 }
 
 @code {
@@ -131,6 +156,21 @@ else
 			await Service.RemoveSchemeAsync(schemeId);
 
 			NavManager.NavigateTo("/schemes");
+		}
+	}
+
+	private async Task DeleteSchemeItemAsync(Guid schemeId, Guid schemeDataItemId)
+	{
+		var confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this scheme item?");
+		if (confirmed)
+		{
+			var result = await Service.RemoveSchemeDataAsync(schemeId, schemeDataItemId);
+
+			if (result.Item)
+			{
+				var scheme = await Service.GetSchemeAsync(SchemeId);
+				_scheme = scheme.Item;
+			}
 		}
 	}
 }

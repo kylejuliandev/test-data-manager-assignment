@@ -10,6 +10,8 @@ public sealed class SchemeDataConfiguration : IEntityTypeConfiguration<SchemeDat
     {
         builder.HasOne(p => p.Scheme).WithMany(b => b.Data);
 
+        builder.HasIndex(s => s.Key).IsUnique();
+
         builder.HasOne(s => s.CreatedBy).WithMany().HasForeignKey((SchemeData p) => p.CreatedById);
 
         builder.HasOne(s => s.ModifiedBy).WithMany().HasForeignKey((SchemeData p) => p.ModifiedById);
