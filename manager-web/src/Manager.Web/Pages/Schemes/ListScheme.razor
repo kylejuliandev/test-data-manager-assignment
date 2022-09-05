@@ -1,10 +1,35 @@
 ﻿@page "/schemes"
 @inject IJSRuntime JsRuntime
 @inject SchemeService SchemeService
+@inject NavigationManager NavigationManager
 
 <SchemeHeader PageTitle="Schemes"
 	PageText="You can view all test schemes that have been set up here. A test scheme is a a collection of key value pairs that form test configuration for an automated test suite.">
 </SchemeHeader>
+
+<div class="row">
+	<div class="col">
+		<p class="fs-5 text-center">Page @Page</p>
+	</div>
+</div>
+
+<div class="row justify-content-center">
+	@if (Page > 1)
+	{
+		<div class="col-2 text-center">
+			<button class="btn btn-secondary btn-sm" @onclick="NavigateToPreviousPage">Previous page</button>
+		</div>
+	}
+
+	@if (_hasMore)
+	{
+		<div class="col-2 text-center">
+			<button class="btn btn-secondary btn-sm"@onclick="NavigateToNextPage">Next page</button>
+		</div>
+	}
+</div>
+
+<br />
 
 <div class="row">
 	<div class="col">
@@ -26,24 +51,24 @@
 							<th scope="row">@scheme.Title</th>
 							<td>@scheme.CreatedByUsername</td>
 							<td>@scheme.CreatedOn.ToLocalTime()</td>
-							<td> 
+							<td class="d-flex"> 
 								@{
 									var readSchemeLink = $"schemes/{scheme.Id}";
 									var editSchemeLink = $"schemes/{scheme.Id}/edit";
 								}
 
-								<NavLink href="@readSchemeLink" class="btn btn-primary">View</NavLink>
+								<NavLink href="@readSchemeLink" class="btn btn-primary btn-sm me-auto">View</NavLink>
 
 								<AuthorizeView Policy="EditScheme">
 									<Authorized>
-										<NavLink href="@editSchemeLink" class="btn btn-warning">Edit</NavLink>
+										<NavLink href="@editSchemeLink" class="btn btn-warning btn-sm me-auto">Edit</NavLink>
 									</Authorized>
 								</AuthorizeView>
 
 								<AuthorizeView Policy="RemoveScheme">
 									<Authorized>
 										<form @onsubmit="async () => await DeleteSchemeAsync(scheme.Id)">
-											<button type="submit" class="btn btn-danger">Remove</button>
+											<button type="submit" class="btn btn-danger btn-sm me-auto">Remove</button>
 										</form>
 									</Authorized>
 								</AuthorizeView>
@@ -56,28 +81,34 @@
 	</div>
 </div>
 
-<br />
-
-<div class="d-grid col-6 mx-auto">
-	<AuthorizeView Policy="CreateScheme">
-		<Authorized>
+<AuthorizeView Policy="CreateScheme">
+	<Authorized>
+		<br />
+		<div class="d-grid col-6 mx-auto">
+			
 			<NavLink href="schemes/create" class="btn btn-large btn-success">Create</NavLink>
-		</Authorized>
-	</AuthorizeView>
-</div>
+		</div>
+	</Authorized>
+</AuthorizeView>
 
 @code {
 	private const int _pageSize = 10;
-	private int _page = 1;
+
+	[Parameter]
+	[SupplyParameterFromQuery]
+	public int Page { get; set; }
+
 	private bool _hasMore = false;
+	private bool _loadingPage = false;
 
 	private ListSchemeDto[]? _schemes;
 
 	protected override async Task OnInitializedAsync()
 	{
-		var schemes = await SchemeService.GetSchemesAsync(_page - 1, _pageSize);
-		_schemes = schemes.Items;
-		_hasMore = schemes.HasMore;
+		if (Page == 0)
+			Page = 1;
+
+		await RefreshDataSetAsync();
 	}
 
 	private async Task DeleteSchemeAsync(Guid schemeId)
@@ -86,6 +117,37 @@
 		if (confirmed)
 		{
 			await SchemeService.RemoveSchemeAsync(schemeId);
+
+			await RefreshDataSetAsync();
+		}
+	}
+
+	private void NavigateToPreviousPage()
+	{
+		NavigationManager.NavigateTo($"/schemes?page={Page - 1}", true);
+	}
+
+	private void NavigateToNextPage()
+	{
+		NavigationManager.NavigateTo($"/schemes?page={Page + 1}", true);
+	}
+
+	private async Task RefreshDataSetAsync()
+	{
+		if (!_loadingPage)
+		{
+			try
+			{
+				_loadingPage = true;
+				
+				var schemes = await SchemeService.GetSchemesAsync(Page - 1, _pageSize);
+				_schemes = schemes.Items;
+				_hasMore = schemes.HasMore;
+			}
+			finally
+			{
+				_loadingPage = false;
+			}
 		}
 	}
 }
