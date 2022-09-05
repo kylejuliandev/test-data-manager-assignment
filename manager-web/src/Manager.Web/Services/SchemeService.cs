@@ -90,7 +90,7 @@ public sealed class SchemeService
                 Title = title
             };
 
-            await _database.AddAsync(scheme);
+            _database.Add(scheme);
             await _database.SaveChangesAsync();
 
             scheme = await GetScheme(schemeId);
@@ -177,7 +177,7 @@ public sealed class SchemeService
                 return new ManagedResponse<SchemeDto>(null, new[] { new ManagedError("You cannot add scheme data to this scheme") });
             }
 
-            var dataKeyExists = await _database.SchemeData.FirstOrDefaultAsync(sd => EF.Functions.Collate(sd.Key, "NOCASE") == key);
+            var dataKeyExists = await _database.SchemeData.FirstOrDefaultAsync(sd => sd.Key == key);
             if (dataKeyExists is not null)
             {
                 _logger.LogWarning("Cannot add duplicate test data key");
@@ -194,7 +194,7 @@ public sealed class SchemeService
                 Scheme = scheme
             };
 
-            await _database.SchemeData.AddAsync(schemeData);
+            _database.SchemeData.Add(schemeData);
             await _database.SaveChangesAsync();
 
             return new ManagedResponse<SchemeDto>(MapSchemeToSchemeDto(scheme), null);
@@ -238,13 +238,6 @@ public sealed class SchemeService
 
             return new ManagedResponse<bool>(true);
         }
-        catch (NotAuthorizedException)
-        {
-            _logger.LogError("An unauthorized user attempted to remove a Scheme data");
-
-            // We return a generic error message back to the user
-            return new ManagedResponse<bool>(false, new[] { new ManagedError("Unable to remove Scheme data from the database") });
-        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unable to remove scheme data from database");
@@ -275,13 +268,6 @@ public sealed class SchemeService
             await _database.SaveChangesAsync();
 
             return new ManagedResponse<bool>(true);
-        }
-        catch (NotAuthorizedException)
-        {
-            _logger.LogError("An unauthorized user attempted to remove a Scheme");
-
-            // We return a generic error message back to the user
-            return new ManagedResponse<bool>(false, new[] { new ManagedError("Unable to remove Scheme from the database") });
         }
         catch (Exception ex)
         {
