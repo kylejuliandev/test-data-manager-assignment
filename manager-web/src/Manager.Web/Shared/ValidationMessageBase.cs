@@ -4,6 +4,10 @@ using System.Linq.Expressions;
 
 namespace Manager.Web.Shared;
 
+/// <summary>
+/// Reusable component for Blazor to render the Validation messages from a Edit Context for a specific field
+/// </summary>
+/// <typeparam name="TValue"></typeparam>
 public class ValidationMessageBase<TValue> : ComponentBase, IDisposable
 {
     private FieldIdentifier _fieldIdentifier;

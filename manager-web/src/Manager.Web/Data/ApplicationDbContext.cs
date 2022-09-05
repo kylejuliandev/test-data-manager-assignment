@@ -36,6 +36,7 @@ public class ApplicationDbContext : IdentityDbContext
             .Entries()
             .Where(e => e.Entity is AuditableEntity && (e.State is EntityState.Added || e.State is EntityState.Modified));
 
+        // If any changes inherit from AuditableEntity, we can proceed and set the Audit fields (CreatedBy/CreatedAt and ModifiedBy/ModifiedAt)
         if (entries.Any())
         {
             var context = _httpContextAccessor.HttpContext;
@@ -63,6 +64,8 @@ public class ApplicationDbContext : IdentityDbContext
                 }
                 else
                 {
+                    // We do not want to overwrite these changes when we are not adding the entity
+
                     Entry(auditEntry).Property(p => p.CreatedById).IsModified = false;
                     Entry(auditEntry).Property(p => p.CreatedAt).IsModified = false;
                 }
