@@ -13,24 +13,26 @@
 	</PageLinks>
 </SchemeHeader>
 
-<div class="row justify-content-center">
-	<div class="col-md-8">
-		<EditForm EditContext="editContext" OnSubmit="@HandleValidSubmit" class="row g-3 needs-validation">
-			<DataAnnotationsValidator />
-
+<EditForm EditContext="editContext" OnSubmit="@HandleValidSubmit" class="row g-3 needs-validation">
+	<DataAnnotationsValidator />
+	<div class="row justify-content-center">
+		<div class="col-md-8">
 			<div class="col">
 				<label for="titleInput" class="form-label">Title</label>
 				<InputText class="form-control" id="titleInput" @bind-Value="Model.Title"/>
 
 				<CustomValidationMessage For="@(() => Model.Title)" Class="invalid-feedback" Style="display:block;" />
 			</div>
-
-			<div class="col-12">
-				<button type="submit" class="btn btn-primary">Create</button>
-			</div>
-		</EditForm>
+		</div>
 	</div>
-</div>
+
+	<div class="row justify-content-end">
+		<div class="col-2">
+			<button type="submit" class="btn btn-success">Create</button>
+		</div>
+	</div>
+
+</EditForm>
 
 @code {
 	public CreateSchemeForm Model { get; set; } = new();

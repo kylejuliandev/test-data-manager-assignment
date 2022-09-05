@@ -3,36 +3,36 @@
 @inject SchemeService Service
 @inject NavigationManager NavManager
 
-<SchemeHeader PageTitle="View Scheme"
-	PageText="Here you can view a test scheme and its associated test items. Additionally, you can add view and add test items to a scheme.">
-
-	<PageLinks>
-		<div class="d-grid gap-2 d-md-flex justify-content-md-end">
-			<NavLink href="/schemes" class="btn btn-secondary">Return to schemes</NavLink>
-
-			<AuthorizeView Policy="EditScheme">
-				<Authorized>
-					<NavLink href="@EditLinkTo" class="btn btn-warning">Edit scheme</NavLink>
-				</Authorized>
-			</AuthorizeView>
-
-
-			@if (_scheme is not null)
-			{
-				<AuthorizeView Policy="RemoveScheme">
-					<Authorized>
-						<form @onsubmit="async () => await DeleteSchemeAsync(_scheme.Id)">
-							<button type="submit" class="btn btn-danger">Remove</button>
-						</form>
-					</Authorized>
-				</AuthorizeView>
-			}
-		</div>
-	</PageLinks>
-</SchemeHeader>
-
 @if (_scheme is not null)
 {
+	<SchemeHeader PageTitle="View Scheme"
+		PageText="Here you can view a test scheme and its associated test items. Additionally, you can add view and add test items to a scheme.">
+
+		<PageLinks>
+			<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+				<NavLink href="/schemes" class="btn btn-secondary">Return to schemes</NavLink>
+
+				<AuthorizeView Policy="EditScheme">
+					<Authorized>
+						<NavLink href="@EditLinkTo" class="btn btn-warning">Edit scheme</NavLink>
+					</Authorized>
+				</AuthorizeView>
+
+
+				@if (_scheme is not null)
+				{
+					<AuthorizeView Policy="RemoveScheme">
+						<Authorized>
+							<form @onsubmit="async () => await DeleteSchemeAsync(_scheme.Id)">
+								<button type="submit" class="btn btn-danger">Remove</button>
+							</form>
+						</Authorized>
+					</AuthorizeView>
+				}
+			</div>
+		</PageLinks>
+	</SchemeHeader>
+
 	<div class="row mt-3">
 		<div class="col-md-6">
 			<p class="h5 text-center mb-3">Summary</p>
@@ -95,6 +95,13 @@
 
 		<NavLink href="@createTestItemLink" class="btn btn-success">Create test item</NavLink>
 	</div>
+}
+else
+{
+	<SchemeHeader PageTitle="Not Found"
+			  PageText="Sorry, there's nothing at this address.">
+		<PageLinks></PageLinks>
+	</SchemeHeader>
 }
 
 @code {
