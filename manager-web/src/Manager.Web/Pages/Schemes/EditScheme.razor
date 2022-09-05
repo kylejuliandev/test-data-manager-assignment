@@ -1,5 +1,6 @@
 ﻿@page "/schemes/{SchemeId:guid}/edit"
 @inject SchemeService Service
+@inject NavigationManager NavManager
 @attribute [Authorize(Policy = "EditScheme")]
 
 @if (Model is not null && editContext is not null)
@@ -77,7 +78,9 @@ else
 	{
 		if (editContext is not null && editContext.Validate())
 		{
-			
+			var scheme = await Service.UpdateSchemeAsync(SchemeId, Model!.Title);
+
+			NavManager.NavigateTo($"/schemes/{SchemeId}");
 		}
 	}
 }

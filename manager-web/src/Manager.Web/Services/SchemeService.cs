@@ -118,6 +118,61 @@ public sealed class SchemeService
         }
     }
 
+    public async Task<ManagedResponse<SchemeDto>> UpdateSchemeAsync(Guid schemeId, string title)
+    {
+        var scheme = await GetScheme(schemeId);
+
+        if (scheme is null)
+        {
+            _logger.LogWarning("Scheme not found, cannot update the scheme");
+
+            return new ManagedResponse<SchemeDto>(null, new[] { new ManagedError("You cannot update this scheme") });
+        }
+
+        if (scheme.Title == title)
+        {
+            return new ManagedResponse<SchemeDto>(new SchemeDto
+            {
+                Id = scheme!.Id,
+                Title = scheme.Title,
+                SchemeData = scheme.Data
+                    .Select(d => new SchemeDataDto
+                    {
+                        Id = d.Id,
+                        Key = d.Key,
+                        Value = d.Value
+                    })
+                    .ToArray(),
+                CreatedByUsername = scheme.CreatedBy.UserName,
+                CreatedOn = scheme.CreatedAt,
+                ModifiedByUsername = scheme.ModifiedBy.UserName,
+                ModifiedOn = scheme.ModifiedAt
+            }, null);
+        }
+
+        scheme.Title = title;
+
+        await _database.SaveChangesAsync();
+
+        return new ManagedResponse<SchemeDto>(new SchemeDto
+        {
+            Id = scheme!.Id,
+            Title = scheme.Title,
+            SchemeData = scheme.Data
+                    .Select(d => new SchemeDataDto
+                    {
+                        Id = d.Id,
+                        Key = d.Key,
+                        Value = d.Value
+                    })
+                    .ToArray(),
+            CreatedByUsername = scheme.CreatedBy.UserName,
+            CreatedOn = scheme.CreatedAt,
+            ModifiedByUsername = scheme.ModifiedBy.UserName,
+            ModifiedOn = scheme.ModifiedAt
+        }, null);
+    }
+
     public async Task<ManagedResponse<bool>> RemoveSchemeAsync(Guid schemeId)
     {
         var scheme = await GetScheme(schemeId);
@@ -126,7 +181,7 @@ public sealed class SchemeService
         {
             _logger.LogWarning("Scheme not found, cannot remove the scheme");
 
-            return new ManagedResponse<bool>(false, new[] { new ManagedError("") });
+            return new ManagedResponse<bool>(false, new[] { new ManagedError("You cannot remove this scheme") });
         }
 
         _database.Schemes.Remove(scheme);
