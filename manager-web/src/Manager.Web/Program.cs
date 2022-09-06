@@ -47,11 +47,7 @@ builder.Services.AddScoped<AuthenticationStateProvider, RevalidatingIdentityAuth
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseMigrationsEndPoint();
-}
-else
+if (app.Environment.IsProduction())
 {
     // We do not want to show stacktraces to the end user, as this makes the application insecure
     app.UseExceptionHandler("/Error");
