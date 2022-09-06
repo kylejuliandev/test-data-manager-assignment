@@ -6,7 +6,7 @@
   </a>
   <h3 align="center">Test Data Manager Coursework Submission</h3>
   <p align="center">
-    By Kyle Juian
+    By Kyle Julian
   </p>
 </div>
 
