@@ -1,0 +1,61 @@
+﻿@page "/schemes/create"
+@inject SchemeService Service
+@inject NavigationManager NavManager
+@attribute [Authorize(Policy = "CreateScheme")]
+
+<PageHeader PageTitle="Create Scheme"
+	PageText="Here you can create a new test scheme. A test scheme is a a collection of key value pairs that form test configuration for an automated test suite.">
+
+	<PageLinks>
+		<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+			<NavLink href="/schemes" class="btn btn-secondary">Return to schemes</NavLink>
+		</div>
+	</PageLinks>
+</PageHeader>
+
+<EditForm EditContext="editContext" OnSubmit="@HandleValidSubmit" class="row g-3 needs-validation">
+	<DataAnnotationsValidator />
+	<div class="row justify-content-center">
+		<div class="col-md-8">
+			<div class="col">
+				<div class="mb-3">
+					<label for="titleInput" class="form-label">Title</label>
+					<InputText class="form-control" id="titleInput" @bind-Value="Model.Title" />
+
+					<CustomValidationMessage For="@(() => Model.Title)" Class="invalid-feedback" Style="display:block;" />
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="row justify-content-end">
+		<div class="col-2">
+			<button type="submit" class="btn btn-success">Create</button>
+		</div>
+	</div>
+
+</EditForm>
+
+@code {
+	public CreateSchemeForm Model { get; set; } = new();
+
+	public EditContext? editContext;
+
+	protected override void OnInitialized()
+	{
+		editContext = new(Model);
+	}
+
+	private async Task HandleValidSubmit()
+	{
+		if (editContext is not null && editContext.Validate())
+		{
+			var scheme = await Service.CreateSchemeAsync(Model.Title);
+
+			if (!scheme.Errors.Any() && scheme.Item is not null)
+			{
+				NavManager.NavigateTo($"/schemes/{scheme.Item.Id}");
+			}
+		}
+	}
+}

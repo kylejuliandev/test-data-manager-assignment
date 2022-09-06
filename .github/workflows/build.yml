@@ -28,6 +28,10 @@ jobs:
         run: |
           dotnet restore
           dotnet build --configuration Release
+      
+      - name: dotnet test
+        run: |
+          dotnet test --no-restore manager-web/src/Manager.Web.UnitTests/Manager.Web.UnitTests.csproj
 
       - name: update database
         run: |

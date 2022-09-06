@@ -9,6 +9,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{C8919CBA-ED1
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Manager.Web", "manager-web\src\Manager.Web\Manager.Web.csproj", "{68E45702-0A84-4DE2-B7BE-1989BFC914EC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Manager.Web.UnitTests", "manager-web\src\Manager.Web.UnitTests\Manager.Web.UnitTests.csproj", "{7A183EC0-3A2B-478A-9112-BB3D461298E4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Manager.Web.SeleniumTests", "manager-web\src\Manager.Web.SeleniumTests\Manager.Web.SeleniumTests.csproj", "{B5280220-D928-4F76-987E-E210240E56F6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,6 +23,14 @@ Global
 		{68E45702-0A84-4DE2-B7BE-1989BFC914EC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{68E45702-0A84-4DE2-B7BE-1989BFC914EC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{68E45702-0A84-4DE2-B7BE-1989BFC914EC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A183EC0-3A2B-478A-9112-BB3D461298E4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A183EC0-3A2B-478A-9112-BB3D461298E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A183EC0-3A2B-478A-9112-BB3D461298E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A183EC0-3A2B-478A-9112-BB3D461298E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5280220-D928-4F76-987E-E210240E56F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5280220-D928-4F76-987E-E210240E56F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5280220-D928-4F76-987E-E210240E56F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5280220-D928-4F76-987E-E210240E56F6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -26,6 +38,8 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{C8919CBA-ED19-49DE-996D-C5D3312F6B94} = {BB5A70F2-0B39-462D-8951-91D299D6FA62}
 		{68E45702-0A84-4DE2-B7BE-1989BFC914EC} = {C8919CBA-ED19-49DE-996D-C5D3312F6B94}
+		{7A183EC0-3A2B-478A-9112-BB3D461298E4} = {C8919CBA-ED19-49DE-996D-C5D3312F6B94}
+		{B5280220-D928-4F76-987E-E210240E56F6} = {C8919CBA-ED19-49DE-996D-C5D3312F6B94}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {11703E45-CCCF-457F-B3E7-445CCC82D74C}

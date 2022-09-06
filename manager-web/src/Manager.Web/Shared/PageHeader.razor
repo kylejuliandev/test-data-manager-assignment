@@ -1,0 +1,20 @@
+﻿<PageTitle>@PageTitle</PageTitle>
+
+<h3>@PageTitle</h3>
+
+<p class="lead">@PageText</p>
+
+@PageLinks
+
+<br />
+
+@code {
+	[Parameter]
+	public string PageTitle { get; set; }
+
+	[Parameter]
+	public string PageText { get; set; }
+
+	[Parameter]
+	public RenderFragment PageLinks { get; set; }
+}

@@ -1,0 +1,86 @@
+﻿@page "/schemes/{SchemeId:guid}/edit"
+@inject SchemeService Service
+@inject NavigationManager NavManager
+@attribute [Authorize(Policy = "EditScheme")]
+
+@if (Model is not null && editContext is not null)
+{
+	<PageHeader PageTitle="Edit Scheme"
+		PageText="You can edit the test scheme here.">
+
+		<PageLinks>
+			<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+				<NavLink href="@ReadLinkTo" class="btn btn-secondary">Return to scheme</NavLink>
+			</div>
+		</PageLinks>
+	</PageHeader>
+
+	<EditForm EditContext="editContext" OnSubmit="@HandleValidSubmit" class="row g-3 needs-validation">
+		<DataAnnotationsValidator />
+		<div class="row justify-content-center mb-3">
+			<div class="col-md-8">
+				<div class="col">
+					<label for="titleInput" class="form-label">Title</label>
+					<InputText class="form-control" id="titleInput" @bind-Value="Model.Title"/>
+
+					<CustomValidationMessage For="@(() => Model.Title)" Class="invalid-feedback" Style="display:block;" />
+				</div>
+			</div>
+		</div>
+
+		<div class="row justify-content-end">
+			<div class="col-2">
+				<button type="submit" class="btn btn-warning">Update</button>
+			</div>
+		</div>
+
+	</EditForm>
+}
+else
+{
+	<PageHeader PageTitle="Not Found"
+				PageText="Sorry, there's nothing at this address.">
+		<PageLinks></PageLinks>
+	</PageHeader>
+}
+
+
+@code {
+	[Parameter]
+	public Guid SchemeId { get; set; }
+
+	private string ReadLinkTo = default!;
+
+	public CreateSchemeForm? Model { get; set; }
+
+	public EditContext? editContext;
+
+	protected override async Task OnInitializedAsync()
+	{
+		ReadLinkTo = $"/schemes/{SchemeId}";
+
+		var scheme = await Service.GetSchemeAsync(SchemeId);
+
+		if (scheme.Item is null)
+		{
+			return;
+		}
+
+		Model = new CreateSchemeForm
+		{
+			Title = scheme.Item.Title
+		};
+
+		editContext = new(Model);
+	}
+
+	private async Task HandleValidSubmit()
+	{
+		if (editContext is not null && editContext.Validate())
+		{
+			var scheme = await Service.UpdateSchemeAsync(SchemeId, Model!.Title);
+
+			NavManager.NavigateTo($"/schemes/{SchemeId}");
+		}
+	}
+}

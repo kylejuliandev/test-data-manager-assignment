@@ -1,0 +1,114 @@
+﻿@page "/schemes/{SchemeId:guid}/data/create"
+@inject SchemeService Service
+@inject NavigationManager NavManager
+@attribute [Authorize(Policy = "EditScheme")]
+
+@if (Model is not null)
+{
+	<PageHeader PageTitle="Create Scheme Test Data"
+			PageText="You can create new Scheme Test data attributes. These are key value pairs that are associated to a Test Scheme.
+		They are retrieved and store the configuration related to a test component.">
+		<PageLinks>
+			<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+				<NavLink href="@ReadLinkTo" class="btn btn-secondary">Return to scheme</NavLink>
+			</div>
+		</PageLinks>
+	</PageHeader>
+
+	@if (ServerErrors is not null)
+	{
+		<div class="row mb-3">
+			<div class="col">
+				<ul class="list-group-flush">
+					@foreach (var error in ServerErrors)
+					{
+						<li class="list-group-item list-group-item-danger py-2 px-2">@error</li>
+					}
+				</ul>
+			</div>
+		</div>
+	}
+
+	<EditForm EditContext="editContext" OnSubmit="@HandleValidSubmit" class="row g-3 needs-validation">
+		<DataAnnotationsValidator />
+		<div class="row justify-content-center">
+			<div class="col-md-8">
+				<div class="col">
+					<div class="mb-3">
+						<label for="keyInput" class="form-label">Key</label>
+						<InputText class="form-control" id="keyInput" @bind-Value="Model.Key"/>
+						<div class="form-text">The key must be unique (globally) and adheres to a the a_b pattern</div>
+
+						<CustomValidationMessage For="@(() => Model.Key)" Class="invalid-feedback" Style="display:block;" />
+					</div>
+					<div class="mb-3">
+						<label for="valueInput" class="form-label">Value</label>
+						<InputText class="form-control" id="valueInput" @bind-Value="Model.Value"/>
+
+						<CustomValidationMessage For="@(() => Model.Value)" Class="invalid-feedback" Style="display:block;" />
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="row justify-content-end">
+			<div class="col-2">
+				<button type="submit" class="btn btn-success">Create</button>
+			</div>
+		</div>
+	</EditForm>
+}
+else
+{
+	<PageHeader PageTitle="Not Found"
+			  PageText="Sorry, there's nothing at this address.">
+		<PageLinks></PageLinks>
+	</PageHeader>
+}
+
+@code {
+	[Parameter]
+	public Guid SchemeId { get; set; }
+
+	public CreateSchemeDataForm? Model { get; set; } = new();
+
+	private string[]? ServerErrors;
+
+	private SchemeDto? _scheme;
+
+	public EditContext? editContext;
+
+	private string ReadLinkTo = default!;
+
+	protected override void OnInitialized()
+	{
+		ReadLinkTo = $"/schemes/{SchemeId}";
+		editContext = new(Model!);
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		var scheme = await Service.GetSchemeAsync(SchemeId);
+
+		if (scheme.Item is null)
+		{
+			_scheme = scheme.Item;
+		}
+	}
+	private async Task HandleValidSubmit()
+	{
+		if (editContext is not null && editContext.Validate())
+		{
+			var scheme = await Service.CreateSchemeDataAsync(SchemeId, Model!.Key, Model.Value);
+
+			if (scheme.Item is not null)
+			{
+				NavManager.NavigateTo($"/schemes/{SchemeId}");
+			}
+			else
+			{
+				ServerErrors = scheme.Errors.Select(e => e.Message).ToArray();
+			}
+		}
+	}
+}
