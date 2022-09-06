@@ -1,0 +1,176 @@
+﻿@page "/schemes/{SchemeId:guid}"
+@inject IJSRuntime JsRuntime
+@inject SchemeService Service
+@inject NavigationManager NavManager
+
+@if (_scheme is not null)
+{
+	<PageHeader PageTitle="View Scheme"
+		PageText="Here you can view a test scheme and its associated test items. Additionally, you can add view and add test items to a scheme.">
+
+		<PageLinks>
+			<div class="d-grid gap-2 d-md-flex justify-content-md-end">
+				<NavLink href="/schemes" class="btn btn-secondary">Return to schemes</NavLink>
+
+				<AuthorizeView Policy="EditScheme">
+					<Authorized>
+						<NavLink href="@EditLinkTo" class="btn btn-warning">Edit scheme</NavLink>
+					</Authorized>
+				</AuthorizeView>
+
+
+				@if (_scheme is not null)
+				{
+					<AuthorizeView Policy="RemoveScheme">
+						<Authorized>
+							<form @onsubmit="async () => await DeleteSchemeAsync(_scheme.Id)">
+								<button type="submit" class="btn btn-danger">Remove</button>
+							</form>
+						</Authorized>
+					</AuthorizeView>
+				}
+			</div>
+		</PageLinks>
+	</PageHeader>
+
+	<div class="row mt-3">
+		<div class="col-md-6">
+			<p class="h5 text-center mb-3">Summary</p>
+
+			<div class="row">
+				<div class="col-2"><p><b>Id</b></p></div>
+				<div class="col-10"><p>@_scheme.Id</p></div>
+			</div>
+			<div class="row">
+				<div class="col-2"><p><b>Title</b></p></div>
+				<div class="col-10"><p>@_scheme.Title</p></div>
+			</div>
+
+			<p class="h5 text-center my-3">Audit</p>
+			<div class="row">
+				<div class="col-4"><p><b>Created by</b></p></div>
+				<div class="col-8"><p>@_scheme.CreatedByUsername</p></div>
+			</div>
+			<div class="row">
+				<div class="col-4"><p><b>Created on</b></p></div>
+				<div class="col-8"><p>@_scheme.CreatedOn</p></div>
+			</div>
+			<div class="row">
+				<div class="col-4"><p><b>Modified by</b></p></div>
+				<div class="col-8"><p>@_scheme.ModifiedByUsername</p></div>
+			</div>
+			<div class="row">
+				<div class="col-4"><p><b>Modified on</b></p></div>
+				<div class="col-8"><p>@_scheme.ModifiedOn</p></div>
+			</div>
+		</div>
+
+		<div class="col-md-6">
+			<p class="h5 text-center mb-3">Test Items</p>
+
+			@if (_scheme.SchemeData.Any())
+			{
+				<table class="table">
+					<thead>
+						<tr>
+							<th>Key</th>
+							<th>Value</th>
+							<AuthorizeView Policy="RemoveSchemeData">
+								<Authorized>
+									<th></th>
+								</Authorized>
+							</AuthorizeView>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach (var schemeData in _scheme.SchemeData)
+						{
+							<tr>
+								<td>@schemeData.Key</td>
+								<td>@schemeData.Value.Truncate(15)</td>
+								<AuthorizeView Policy="RemoveSchemeData">
+									<Authorized>
+										<th class="d-flex justify-content-end">
+											<form @onsubmit="async () => await DeleteSchemeItemAsync(_scheme.Id, schemeData.Id)">
+												<button type="submit" class="btn btn-danger btn-sm me-auto">Remove</button>
+											</form>
+										</th>
+									</Authorized>
+								</AuthorizeView>
+							</tr>
+						}
+					</tbody>
+				</table>
+			}
+			else
+			{
+				<p class="p-2 text-center fst-italic">You have not created any Test Items just yet!</p>	
+			}
+		</div>
+	</div>
+
+	<div class="d-grid mx-auto justify-content-md-end">
+		@{
+			var createTestItemLink = $"/schemes/{_scheme.Id}/data/create";
+		}
+
+		<AuthorizeView Policy="CreateSchemeData">
+			<Authorized>
+				<NavLink href="@createTestItemLink" class="btn btn-success">Create test item</NavLink>
+			</Authorized>
+		</AuthorizeView>
+	</div>
+}
+else
+{
+	<PageHeader PageTitle="Not Found"
+			  PageText="Sorry, there's nothing at this address.">
+		<PageLinks></PageLinks>
+	</PageHeader>
+}
+
+@code {
+	[Parameter]
+	public Guid SchemeId { get; set; }
+
+	private SchemeDto? _scheme;
+
+	private string EditLinkTo = default!;
+
+	protected override void OnInitialized()
+	{
+		EditLinkTo = $"/schemes/{SchemeId}/edit";
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		var scheme = await Service.GetSchemeAsync(SchemeId);
+		_scheme = scheme.Item;
+	}
+
+	private async Task DeleteSchemeAsync(Guid schemeId)
+	{
+		var confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this scheme?");
+		if (confirmed)
+		{
+			await Service.RemoveSchemeAsync(schemeId);
+
+			NavManager.NavigateTo("/schemes");
+		}
+	}
+
+	private async Task DeleteSchemeItemAsync(Guid schemeId, Guid schemeDataItemId)
+	{
+		var confirmed = await JsRuntime.InvokeAsync<bool>("confirm", "Are you sure you want to remove this scheme item?");
+		if (confirmed)
+		{
+			var result = await Service.RemoveSchemeDataAsync(schemeId, schemeDataItemId);
+
+			if (result.Item)
+			{
+				var scheme = await Service.GetSchemeAsync(SchemeId);
+				_scheme = scheme.Item;
+			}
+		}
+	}
+}
