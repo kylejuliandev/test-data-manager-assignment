@@ -120,7 +120,8 @@ Below depicates a sequence diagram of the steps involved for navigating to and l
 sequenceDiagram
     actor U as User
     participant B as Browser
-    participant WS as Django
+    participant WS as Blazor
+    participant DB as SQLite
     U->>+B: Navigate to dev
     Note over U,B: testdatamanager.azurewebsites.net
     B->>+WS: Request web page
