@@ -20,6 +20,9 @@ if (builder.Environment.IsDevelopment())
 builder.Services.AddDefaultIdentity<IdentityUser>(options => 
     {
         options.SignIn.RequireConfirmedAccount = true;
+        options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+        options.Lockout.MaxFailedAccessAttempts = 5;
+        options.Lockout.AllowedForNewUsers = true;
     })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
