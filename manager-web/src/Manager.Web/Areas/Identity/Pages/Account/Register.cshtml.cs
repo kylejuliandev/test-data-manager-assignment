@@ -146,15 +146,15 @@ public class RegisterModel : PageModel
 
 public class PasswordIsNotCommon : ValidationAttribute
 {
-    public override bool IsValid(object value)
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
     {
         var password = value as string;
         if (string.IsNullOrEmpty(password))
-            return true;
+            return ValidationResult.Success;
 
         if (Top_10_000_Common_Passwords.Passwords.Contains(password))
-            return false;
+            return new ValidationResult(ErrorMessage);
 
-        return base.IsValid(value);
+        return base.IsValid(value, validationContext);
     }
 }
