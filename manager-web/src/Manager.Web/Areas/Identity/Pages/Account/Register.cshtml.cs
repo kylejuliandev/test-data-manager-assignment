@@ -5,6 +5,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using System.Text.Encodings.Web;
+using Manager.Web.Areas.Identity.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -56,6 +57,7 @@ public class RegisterModel : PageModel
 
         [Required]
         [StringLength(100, ErrorMessage = "The {0} must be at least {2} and at max {1} characters long.", MinimumLength = 6)]
+        [PasswordIsNotCommon(ErrorMessage = "The password you have selected is too common. Use a more secure password.")]
         [DataType(DataType.Password)]
         [Display(Name = "Password")]
         public string Password { get; set; }
@@ -139,5 +141,20 @@ public class RegisterModel : PageModel
             throw new NotSupportedException("The default UI requires a user store with email support.");
         
         return (IUserEmailStore<IdentityUser>)_userStore;
+    }
+}
+
+public class PasswordIsNotCommon : ValidationAttribute
+{
+    protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+    {
+        var password = value as string;
+        if (string.IsNullOrEmpty(password))
+            return ValidationResult.Success;
+
+        if (Top_10_000_Common_Passwords.Passwords.Contains(password))
+            return new ValidationResult(ErrorMessage);
+
+        return base.IsValid(value, validationContext);
     }
 }
